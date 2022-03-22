@@ -1,0 +1,14 @@
+ospf:
+  underlay-terraform:
+    # name: underlay-terraform
+    vrfs:
+      default:
+        # name: foo
+        adjancency_logging_level: detail
+        interfaces:
+          eth1/41:
+            area: "0.0.0.0"
+      # apply_to:
+      # - mpod-ac-1
+    # apply_to:
+    # - mpod-ac-1

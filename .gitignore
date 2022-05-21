@@ -31,3 +31,9 @@ override.tf.json
 # lock files
 terraform.lock.hcl
 .terraform.lock.hcl
+
+# VSCODE
+.vscode
+
+# TMP
+config-test*

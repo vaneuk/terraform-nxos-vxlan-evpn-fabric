@@ -16,109 +16,88 @@ terraform {
 
 provider "nxos" {
   username = "admin"
-  password = "Admin_1234!"
-  # url      = "https://10.62.130.39"
-  url = "https://sandbox-nxos-1.cisco.com"
-  # url      = "https://10.62.130.36"
-  retries = 1
+  password = "cisco!123"
+  url      = "https://10.0.24.200"
 }
 
 variable "hostname" {
-  description = "device hostname"
+  description = "Device hostname."
 }
 
 variable "groups" {
-  description = "device groups"
+  description = "Device groups."
 }
 
 locals {
-  model = yamldecode(data.utils_deep_merge_yaml.model.output)
-  # leaf_data = [for file in fileset(path.module, "../../data/groups/${var.hostname}.yaml") : file(file)]
-  # leaf_data = [for file in fileset(path.module, "../../data/groups/${var.hostname}.yaml") : file(file)]
-  groups_and_hostname = concat(var.groups, [var.hostname])
-  group_config_files = join(",", local.groups_and_hostname)
-  group_data = [for file in fileset(path.module, "../../data/groups/{${local.group_config_files}}.yaml") : file(file)]
-  # group_data = flatten([
-  #   for group in var.groups: [
-  #     for file in fileset(path.module, "../../data/groups/${group}.yaml") : file(file)
-  #   ]
-  # ])
-  # qwe = [for file in fileset(path.module, "../../data/all/*.yaml") : file(file)]
+  # Prepare config files list
+  groups             = concat(var.groups, [var.hostname])
+  group_config_files = join(",", local.groups)
+
+  # Load parameters and model
+  parameters = yamldecode(data.utils_deep_merge_yaml.parameters.output)
+  m          = yamldecode(data.utils_deep_merge_yaml.model.output)
+
+  # Create VRF map
+  vrfs_set = toset([
+    for service_name, service in lookup(local.m, "l2vni", {}) : service.vrf if length(setintersection(toset(service.apply_to), toset(var.groups))) > 0
+  ])
+  vrfs = { for vrf_name in local.vrfs_set : vrf_name => local.m.l3vni[vrf_name] }
+
+  interfaces = {
+    for interface_name, interface in local.m.interfaces_ethernet :
+    interface_name => contains(keys(interface), "template") ? merge(interface, local.m.interface_templates[interface.template]) : interface
+  }
+
+  # Update model
+  model = merge(
+    local.m,
+    { "hostname" = var.hostname },
+    { "features" = [for k, v in local.m.features : k if v] },
+    { "vrfs" = local.vrfs },
+    { "interfaces_ethernet" = local.interfaces }
+  )
+
+  # Load final model
+  model_nxos = jsondecode(data.external.nxos_model.result.model)
 }
 
-# output "group" {
-#   value = local.group_data
-# }
-
-# output "leaf" {
-#   value = local.leaf_data
-# }
-
-# output "all_data" {
-#   value = local.qwe
-# }
-
-output "all_groups" {
-  value = local.group_config_files
+data "utils_deep_merge_yaml" "parameters" {
+  append_list = true
+  input = concat(
+    [for file in fileset(path.module, "../../parameters/all/*.yaml") : file(file)],
+    [for file in fileset(path.module, "../../parameters/groups/{${local.group_config_files}}.yaml") : file(file)],
+  )
 }
 
 data "utils_deep_merge_yaml" "model" {
   append_list = true
-  input       = concat(
-    [for file in fileset(path.module, "../../data/all/*.yaml") : file(file)],
-    [for file in fileset(path.module, "../../data/groups/{${local.group_config_files}}.yaml") : file(file)],
-    # local.group_data,
-    # [for file in fileset(path.module, "../../data/${var.hostname}/*.yaml") : file(file)],
-    # local.leaf_data,
-    [for file in fileset(path.module, "../../data/overlay-services/*.yaml") : file(file)]
-    )
-  # input       = concat([for file in fileset(path.module, "data/*.yaml") : file(file)], [file("${path.module}/defaults/defaults.yaml")])
+  input = concat(
+    [for file in fileset(path.module, "../../templates/all/*.yaml") : templatefile(file, { p = local.parameters })],
+    [for file in fileset(path.module, "../../templates/groups/{${local.group_config_files}}.yaml") : templatefile(file, { p = local.parameters })],
+    [for file in fileset(path.module, "../../templates/overlay-services/*.yaml") : templatefile(file, { p = local.parameters })],
+  )
 }
 
-module "vrf" {
-  source   = "../../modules/vrf"
-  model    = local.model
-  groups = local.groups_and_hostname
-}
-
-module "interfaces-ethernet" {
-  source      = "../../modules/interfaces-ethernet"
-  model    = local.model
-  # depends_on = [module.vrfs]
+output "model_nxos" {
+  value = local.model_nxos
 }
 
 output "model" {
   value = local.model
 }
 
-module "ospf" {
-  source     = "../../modules/ospf"
-  model      = local.model
-  hostname   = var.hostname
-  depends_on = [module.interfaces-ethernet]
+data "external" "nxos_model" {
+  program = ["python3", "fm.py"]
+  query = {
+    # model = "foo"
+    model = jsonencode(local.model)
+  }
 }
 
-module "bgp" {
-  source     = "../../modules/bgp"
-  model      = local.model
-  depends_on = [module.ospf]
+module "nxos_config" {
+  # source  = "netascode/config/nxos"
+  # version = ">= 0.0.1"
+  source = "../../../terraform-nxos/terraform-nxos-config/"
+
+  model = local.model_nxos
 }
-
-# module "nxos_vrf" {
-#   source     = "../../../terraform-nxac/modules/nxos-vrf"
-#   for_each   = {
-#     for vrf in lookup(local.model, "vrfs", []) : vrf.name => vrf
-#     if contains(vrf.nodes, var.node)
-#     }
-#   name       = each.value.name
-#   # depends_on = [module.nxos_vrf_default]
-# }
-
-# module "vrf" {
-#   source = "./modules/vrf"
-
-#   for_each    = toset([for tenant in lookup(local.model, "vrfs", []) : vrf.name])
-#   model       = local.model
-#   vrf_name = each.value
-# }
-

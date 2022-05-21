@@ -1,0 +1,56 @@
+interfaces_ethernet:
+  1/51:
+    template: underlay_interface
+  1/52:
+    template: underlay_interface
+interfaces_loopback:
+  "0":
+    description: Router ID
+    ipv4_address: ${p.ip_lo0}/32
+# logging:
+#   default:
+#     levels:
+#       vpc: 5
+features:
+  pim: false
+ospf:
+  underlay:
+    vrfs:
+      default:
+        router_id: ${p.ip_lo0}
+        adjancency_logging_level: detail
+        bandwidth_reference: 1000
+        banwidth_reference_unit: gbps
+        interfaces:
+          eth1/51:
+            area: 0.0.0.0
+            network_type: p2p
+          eth1/52:
+            area: 0.0.0.0
+            network_type: p2p
+          lo0:
+            area: 0.0.0.0
+bgp:
+  asn: ${p.bgp_asn}
+  enhanced_error: false
+  template_peers:
+    SPINE-PEERS:
+      asn: ${p.bgp_asn}
+      source_interface: lo0
+      address_families:
+        l2vpn_evpn:
+          send_community_standard: true
+          send_community_extended: true
+  vrfs:
+    default:
+      router_id: ${p.ip_lo0}
+      log_neighbor_changes: true
+      graseful_restart_stalepath_time: 1800
+      graseful_restart_restart_time: 300
+      neighbors:
+        ${p.ip_spine_1}:
+          inherit_peer: SPINE-PEERS
+          description: ${p.description_spine_1}
+        ${p.ip_spine_2}:
+          inherit_peer: SPINE-PEERS
+          description: ${p.description_spine_2}

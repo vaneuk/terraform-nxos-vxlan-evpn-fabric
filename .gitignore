@@ -37,3 +37,4 @@ terraform.lock.hcl
 
 # TMP
 config-test*
+*.drawio

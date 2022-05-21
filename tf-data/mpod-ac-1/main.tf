@@ -37,13 +37,52 @@ locals {
   parameters = yamldecode(data.utils_deep_merge_yaml.parameters.output)
   m          = yamldecode(data.utils_deep_merge_yaml.model.output)
 
-  # Create VRF map
-  vrfs_set = toset([
-    for service_name, service in lookup(local.m, "l2vni", {}) : service.vrf if length(setintersection(toset(service.apply_to), toset(var.groups))) > 0
-  ])
-  vrfs = { for vrf_name in local.vrfs_set : vrf_name => local.m.l3vni[vrf_name] }
+  # Map of L2VNI applied to this device
+  l2vni_map = {
+    for service_name, service in lookup(local.m, "l2vni", {}) : service_name => service if length(setintersection(toset(service.apply_to), toset(local.groups))) > 0
+  }
 
-  interfaces = {
+  # Create VRF map
+  vrfs_set = toset([for service_name, service in local.l2vni_map : service.vrf])
+  vrfs     = { for vrf_name in local.vrfs_set : vrf_name => merge(local.m.l3vni[vrf_name], local.m.vrf_templates.auto) }
+  # l3vni_map = { for vrf_name, vrf in local.m.l3vni : vrf_name => merge(local.m.l3vni[vrf_name], local.m.vrf_templates.auto) if }
+
+  vlans = [for service_name, service in local.l2vni_map :
+    {
+      "id" : service.vlan
+      "name" : service_name
+    }
+  ]
+
+  interfaces_vlan_l2vni = [for service_name, service in local.l2vni_map :
+    merge(service,
+      {
+        "id" : service.vlan
+        "description" : service_name
+      }
+    )
+  ]
+
+  # interfaces_vlan_l3vni = [for vrf_name in local.vrfs_set :
+  #   merge(local.vrfs[vrf_name],
+  #     {
+  #       "id" : local.vrfs[vrf_name].vlan
+  #       # "description" : service_name
+  #       "ip_forward" : true
+  #     }
+  #   )
+  # ]
+
+  # service-tenant-2-b:
+  # vrf: TENANT-2
+  # vlan: 104
+  # vni: 1000104
+  # ip_address: 10.2.104.1/24
+  # apply_to:
+  #   - site-1-leaf-1
+
+  # Update Template if required
+  interfaces_ethernet = {
     for interface_name, interface in local.m.interfaces_ethernet :
     interface_name => contains(keys(interface), "template") ? merge(interface, local.m.interface_templates[interface.template]) : interface
   }
@@ -54,7 +93,9 @@ locals {
     { "hostname" = var.hostname },
     { "features" = [for k, v in local.m.features : k if v] },
     { "vrfs" = local.vrfs },
-    { "interfaces_ethernet" = local.interfaces }
+    { "vlans" = local.vlans },
+    { "interfaces_ethernet" = local.interfaces_ethernet },
+    { "interfaces_vlan" = local.interfaces_vlan_l2vni },
   )
 
   # Load final model
@@ -89,7 +130,6 @@ output "model" {
 data "external" "nxos_model" {
   program = ["python3", "fm.py"]
   query = {
-    # model = "foo"
     model = jsonencode(local.model)
   }
 }

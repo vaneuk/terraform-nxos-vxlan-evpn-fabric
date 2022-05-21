@@ -1,21 +1,8 @@
 l3vni:
-  foo:
+  TENANT-1:
     vlan: 3901
     vni: 103901
-    rd: auto
-  bar:
+  TENANT-2:
     vlan: 3902
     vni: 103902
-    rd: auto
-  bar2:
-    vlan: 3903
-    vni: 103903
-    rd: auto
-  bar3:
-    vlan: 3904
-    vni: 103904
-    rd: "1.1.1.1:500"
-  test-100:
-    vlan: 3950
-    vni: 3950
-    rd: auto
+    mtu: 9216

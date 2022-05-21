@@ -10,6 +10,13 @@ interface_templates:
       description: underlay interface
       debounce: 0
       mtu: 9216
+vrf_templates:
+  auto:
+    route_distinguisher: auto
+    address_families:
+      - address_family: "ipv4_unicast"
+        route_target_both_auto: true
+        route_target_both_auto_evpn: true
 features:
   ospf: true
   bgp: true

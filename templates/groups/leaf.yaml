@@ -7,10 +7,21 @@ interfaces_loopback:
   "0":
     description: Router ID
     ipv4_address: ${p.ip_lo0}/32
+# interfaces_vlan:
+#   "3967":
+#     description: VPC Layer-3 Peering for VXLAN
+#     ipv4_address: ${p.ip_lo0}/32
 # logging:
 #   default:
 #     levels:
 #       vpc: 5
+interface_nve:
+  admin_state: true
+  hold_down_time: 300
+  host_reachability_protocol: bgp
+  ingress_replication_protocol_bgp: true
+  source_interface: "lo0"
+  # VNI List is populated automatically based on services applied to leaf
 features:
   pim: false
 ospf:

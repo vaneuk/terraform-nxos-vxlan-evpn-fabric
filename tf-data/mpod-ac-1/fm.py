@@ -131,6 +131,7 @@ CHANGE_LIST = [
     ("interface", ["ospf", "vrfs", "interfaces"]),
     ("interfaces_ethernet", ["ospf", "vrfs", "interfaces"]),
     ("name", ["vrfs"]),
+    ("name", ["vrfs2"]),
     ("id", ["interfaces_ethernet"]),
     ("id", ["interfaces_loopback"]),
     # ("id", ["interfaces_vlan"]),

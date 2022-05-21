@@ -1,8 +1,11 @@
 l3vni:
   TENANT-1:
+    description: Some tenant
     vlan: 3901
     vni: 103901
+    mtu: 9216
   TENANT-2:
+    description: Some tenant
     vlan: 3902
     vni: 103902
     mtu: 9216

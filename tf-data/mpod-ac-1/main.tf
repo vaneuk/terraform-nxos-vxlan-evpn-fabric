@@ -45,7 +45,6 @@ locals {
   # Create VRF map
   vrfs_set = toset([for service_name, service in local.l2vni_map : service.vrf])
   vrfs     = { for vrf_name in local.vrfs_set : vrf_name => merge(local.m.l3vni[vrf_name], local.m.vrf_templates.auto) }
-  # l3vni_map = { for vrf_name, vrf in local.m.l3vni : vrf_name => merge(local.m.l3vni[vrf_name], local.m.vrf_templates.auto) if }
 
   vlans = [for service_name, service in local.l2vni_map :
     {
@@ -62,24 +61,16 @@ locals {
       }
     )
   ]
-
-  # interfaces_vlan_l3vni = [for vrf_name in local.vrfs_set :
-  #   merge(local.vrfs[vrf_name],
-  #     {
-  #       "id" : local.vrfs[vrf_name].vlan
-  #       # "description" : service_name
-  #       "ip_forward" : true
-  #     }
-  #   )
-  # ]
-
-  # service-tenant-2-b:
-  # vrf: TENANT-2
-  # vlan: 104
-  # vni: 1000104
-  # ip_address: 10.2.104.1/24
-  # apply_to:
-  #   - site-1-leaf-1
+  interfaces_vlan_l3vni = [for vrf_name, vrf in local.vrfs :
+    merge(vrf,
+      {
+        "id" : vrf.vlan
+        # "description" : vrf.description
+        "ip_forward" : true
+        "vrf" : vrf_name
+    })
+  ]
+  interfaces_vlan = concat(local.interfaces_vlan_l2vni, local.interfaces_vlan_l3vni)
 
   # Update Template if required
   interfaces_ethernet = {
@@ -95,7 +86,8 @@ locals {
     { "vrfs" = local.vrfs },
     { "vlans" = local.vlans },
     { "interfaces_ethernet" = local.interfaces_ethernet },
-    { "interfaces_vlan" = local.interfaces_vlan_l2vni },
+    { "interfaces_vlan" = local.interfaces_vlan },
+    { "foo" = local.interfaces_vlan },
   )
 
   # Load final model

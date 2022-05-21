@@ -4,6 +4,7 @@ l2vni:
     vlan: 101
     vni: 1000101
     ipv4_address: 10.1.101.1/24
+    mtu: 9216
     apply_to:
       - site-1-leaf-1
   service-tenant-1-b:
@@ -11,6 +12,7 @@ l2vni:
     vlan: 102
     vni: 1000102
     ipv4_address: 10.1.102.1/24
+    mtu: 9216
     apply_to:
       - site-1-leaf-1
   service-tenant-2-a:
@@ -18,6 +20,7 @@ l2vni:
     vlan: 103
     vni: 1000103
     ipv4_address: 10.2.103.1/24
+    mtu: 9216
     apply_to:
       - site-1-leaf-1
   service-tenant-2-b:
@@ -25,5 +28,6 @@ l2vni:
     vlan: 104
     vni: 1000104
     ipv4_address: 10.2.104.1/24
+    mtu: 9216
     apply_to:
       - site-1-leaf-1

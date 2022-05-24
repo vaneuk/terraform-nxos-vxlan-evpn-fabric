@@ -4,7 +4,7 @@ terraform {
   required_providers {
     nxos = {
       source  = "netascode/nxos"
-      version = ">= 0.1.1"
+      version = ">= 0.3.14"
     }
     utils = {
       source  = "cloudposse/utils"
@@ -62,13 +62,13 @@ locals {
     )
   ]
   interfaces_vlan_l3vni = [for vrf_name, vrf in local.vrfs :
-    merge(vrf,
-      {
-        "id" : vrf.vlan
-        # "description" : vrf.description
-        "ip_forward" : true
-        "vrf" : vrf_name
-    })
+    {
+      "id" : vrf.vlan
+      "description" : lookup(vrf, "description", null)
+      "mtu" : lookup(vrf, "mtu", 9216)
+      "ip_forward" : true
+      "vrf" : vrf_name
+    }
   ]
   interfaces_vlan = concat(local.interfaces_vlan_l2vni, local.interfaces_vlan_l3vni)
 

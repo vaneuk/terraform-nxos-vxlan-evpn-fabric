@@ -1,0 +1,3 @@
+bgp_asn: 65002
+underlay_ip_pool: 169.254.0.0/16
+lo0_ip_pool: 172.16.0.0/24

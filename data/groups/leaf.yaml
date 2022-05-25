@@ -1,16 +1,18 @@
 interfaces_ethernet:
-  1/51:
+  1/6:
     template: underlay_interface
-  1/52:
+    ipv4_address: {{ip_uplink_1}}
+  1/7:
     template: underlay_interface
+    ipv4_address: {{ip_uplink_2}}
 interfaces_loopback:
   "0":
     description: Router ID
-    ipv4_address: ${p.ip_lo0}/32
+    ipv4_address: {{ip_lo0}}/32
 # interfaces_vlan:
 #   "3967":
 #     description: VPC Layer-3 Peering for VXLAN
-#     ipv4_address: ${p.ip_lo0}/32
+#     ipv4_address: ${ip_lo0}/32
 # logging:
 #   default:
 #     levels:
@@ -28,7 +30,7 @@ ospf:
   underlay:
     vrfs:
       default:
-        router_id: ${p.ip_lo0}
+        router_id: {{ip_lo0}}
         adjancency_logging_level: detail
         bandwidth_reference: 1000
         banwidth_reference_unit: gbps
@@ -42,11 +44,11 @@ ospf:
           lo0:
             area: 0.0.0.0
 bgp:
-  asn: ${p.bgp_asn}
+  asn: {{bgp_asn}}
   enhanced_error: false
   template_peers:
     SPINE-PEERS:
-      asn: ${p.bgp_asn}
+      asn: {{bgp_asn}}
       source_interface: lo0
       address_families:
         l2vpn_evpn:
@@ -54,14 +56,14 @@ bgp:
           send_community_extended: true
   vrfs:
     default:
-      router_id: ${p.ip_lo0}
+      router_id: {{ip_lo0}}
       log_neighbor_changes: true
       graseful_restart_stalepath_time: 1800
       graseful_restart_restart_time: 300
       neighbors:
-        ${p.ip_spine_1}:
+        {{ip_spine_1}}:
           inherit_peer: SPINE-PEERS
-          description: ${p.description_spine_1}
-        ${p.ip_spine_2}:
+          description: {{description_spine_1}}
+        {{ip_spine_2}}:
           inherit_peer: SPINE-PEERS
-          description: ${p.description_spine_2}
+          description: {{description_spine_2}}

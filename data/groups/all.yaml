@@ -1,0 +1,15 @@
+logging:
+  default:
+    levels:
+      l2fm: 5
+    syslog:
+      foo: "bar"
+features:
+  ospf: true
+  bgp: true
+  nv_overlay: true
+  evpn: true
+  vn_segment: true
+  ssh: true
+  interface_vlan: true
+  pim: true

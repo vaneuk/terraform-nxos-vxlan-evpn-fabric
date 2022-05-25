@@ -1,0 +1,5 @@
+# interfaces_ethernet:
+#   1/51:
+#     ipv4_address: "169.254.0.0/31"
+#   1/52:
+#     ipv4_address: "169.254.0.2/31"

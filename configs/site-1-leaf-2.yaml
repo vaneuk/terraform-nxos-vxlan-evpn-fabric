@@ -1,0 +1,83 @@
+bgp:
+  asn: 65002
+  enhanced_error: false
+  template_peers:
+  - address_families:
+    - address_family: l2vpn_evpn
+      send_community_extended: true
+      send_community_standard: true
+    asn: 65002
+    name: SPINE-PEERS
+    source_interface: lo0
+  vrfs:
+  - graseful_restart_restart_time: 300
+    graseful_restart_stalepath_time: 1800
+    log_neighbor_changes: true
+    neighbors:
+    - description: site-1-spine-1
+      inherit_peer: SPINE-PEERS
+      ip: 172.16.1.101
+    - description: site-1-spine-2
+      inherit_peer: SPINE-PEERS
+      ip: 172.16.1.102
+    router_id: 172.16.1.2
+    vrf: default
+features:
+- ospf
+- bgp
+- nv_overlay
+- evpn
+- vn_segment
+- ssh
+- interface_vlan
+hostname: site-1-leaf-2
+interface_nve:
+  admin_state: true
+  hold_down_time: 300
+  host_reachability_protocol: bgp
+  ingress_replication_protocol_bgp: true
+  source_interface: lo0
+interfaces_ethernet:
+- debounce: 0
+  description: underlay interface
+  id: 1/51
+  ipv4_address: 192.168.3.0/31
+  layer3: true
+  mtu: 9216
+- debounce: 0
+  description: underlay interface
+  id: 1/52
+  ipv4_address: 192.168.4.0/31
+  layer3: true
+  mtu: 9216
+interfaces_loopback:
+- description: Router ID
+  id: '0'
+  ipv4_address: 172.16.1.2/32
+interfaces_vlan: []
+logging:
+  default:
+    levels:
+      l2fm: 5
+    syslog:
+      foo: bar
+ospf:
+- name: underlay
+  vrfs:
+  - adjancency_logging_level: detail
+    bandwidth_reference: 1000
+    banwidth_reference_unit: gbps
+    interfaces:
+    - area: 0.0.0.0
+      interface: eth1/51
+      network_type: p2p
+    - area: 0.0.0.0
+      interface: eth1/52
+      network_type: p2p
+    - area: 0.0.0.0
+      interface: lo0
+    router_id: 172.16.1.2
+    vrf: default
+vlans: []
+vrfs:
+- name: default

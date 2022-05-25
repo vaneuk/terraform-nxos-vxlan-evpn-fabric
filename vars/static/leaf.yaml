@@ -1,6 +1,3 @@
-ip_lo0: 172.16.1.1
-ip_uplink_1: 192.168.1.0/31
-ip_uplink_2: 192.168.2.0/31
 ip_spine_1: 172.16.1.101
 description_spine_1: "site-1-spine-1"
 ip_spine_2: 172.16.1.102

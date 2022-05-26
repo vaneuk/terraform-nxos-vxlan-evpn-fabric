@@ -9,6 +9,11 @@ ip:
   1/6: 169.254.1.2
   1/7: 169.254.2.2
   lo0: 172.16.0.2
+services:
+  l2vni:
+  - service-tenant-1-a
+  l3vni:
+  - TENANT-1
 underlay_interfaces:
 - 1/6
 - 1/7

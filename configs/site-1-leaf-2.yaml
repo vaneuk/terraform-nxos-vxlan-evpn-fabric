@@ -22,6 +22,10 @@ bgp:
       ip: 172.16.1.2
     router_id: 172.16.0.2
     vrf: default
+fabric_forwarding:
+  anycast_gateway_mac: '20:20:00:00:10:12'
+  anycast_gateway_vlans:
+  - 101
 features:
 - ospf
 - bgp
@@ -37,6 +41,10 @@ interface_nve:
   host_reachability_protocol: bgp
   ingress_replication_protocol_bgp: true
   source_interface: lo0
+  vnis:
+  - associate_vrf: true
+    vni: 103901
+  - vni: 1000101
 interfaces_ethernet:
 - description: underlay interface
   id: 1/6
@@ -55,7 +63,7 @@ interfaces_loopback:
   id: '0'
   ipv4_address: 172.16.0.2/32
 interfaces_vlan:
-- description: Some tenant
+- description: L3VNI_VLAN_FOR_TENANT-1
   id: 3901
   ip_forward: true
   mtu: 9216
@@ -82,6 +90,8 @@ ospf:
     router_id: 172.16.0.2
     vrf: default
 vlans:
+- id: 3901
+  name: L3VNI_VLAN_FOR_TENANT-1
 - id: 101
   name: service-tenant-1-a
 vrfs:

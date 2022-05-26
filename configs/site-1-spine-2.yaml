@@ -46,7 +46,6 @@ interfaces_loopback:
 - description: Router ID
   id: '0'
   ipv4_address: 172.16.1.2/32
-interfaces_vlan: []
 ospf:
 - name: underlay
   vrfs:
@@ -64,6 +63,5 @@ ospf:
       network_type: p2p
     router_id: 172.16.1.2
     vrf: default
-vlans: []
 vrfs:
 - name: default

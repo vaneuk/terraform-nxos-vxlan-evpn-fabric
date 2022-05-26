@@ -30,72 +30,18 @@ class ModelConstructor(BaseModel):
     def construct_model(self):
         self.model = convert_dicts_to_lists(self.model_data)
         self.convert_features()
-        self.add_model_info()
+        # self.add_model_info()
         return self.model
-
-    def __apply_to_device(self, apply_to):
-        intersection = list(set(apply_to) & set(self.groups))
-        # return True if there is intersection
-        return len(intersection) > 0
 
     def convert_features(self):
         features = [k for k, v in self.model["features"].items() if v]
         self.model["features"] = features
 
-    def add_model_info(self):
-        # TODO REFACTOR
-        device_vlans = []
-        device_vrfs = []
-        device_interfaces_vlan = []
-        for service_name, service in self.services_data["l2vni"].items():
-            if self.__apply_to_device(service["apply_to"]):
-                vlan_entry = {"id": service["vlan"], "name": service_name}
-                device_vlans.append(vlan_entry)
-        self.model["vlans"] = device_vlans
 
-        vrf_list = []
-        for vlan in device_vlans:
-            if self.services_data["l2vni"][vlan["name"]]["vrf"] not in vrf_list:
-                vrf_list.append(self.services_data["l2vni"][vlan["name"]]["vrf"])
-
-        for vrf in vrf_list:
-            vrf_entry = {
-                "name": vrf,
-                "description": self.services_data["l3vni"][vrf]["description"],
-                "vni": self.services_data["l3vni"][vrf]["vni"],
-            }
-            vrf_entry.update(self.templates_data["vrf_templates"]["auto"])
-            device_vrfs.append(vrf_entry)
-
-        self.model["vrfs"].extend(device_vrfs)
-
-        for vrf in device_vrfs:
-            l3vni_vlan = {
-                "id": self.services_data["l3vni"][vrf["name"]]["vlan"],
-                "description": vrf.get("description", ""),
-                "mtu": vrf.get("mtu", 9216),
-                "ip_forward": True,
-                "vrf": vrf["name"],
-            }
-            device_interfaces_vlan.append(l3vni_vlan)
-
-        for vlan in device_vlans:
-            l2vni_vlan = {
-                "id": vlan["id"],
-                "description": vlan["name"],
-                "mtu": self.services_data["l2vni"][vlan["name"]]["mtu"],
-                "vrf": self.services_data["l2vni"][vlan["name"]]["vrf"],
-            }
-            device_interfaces_vlan.append(l2vni_vlan)
-
-        self.model["interfaces_vlan"] = device_interfaces_vlan
-
-
-# def load_yaml(path, data):
-#     with open(path, "r") as f:
-#         tmp = yaml.safe_load(f)
-#         if tmp:
-#             data.update(tmp)
+def apply_to_device(apply_to, groups):
+    intersection = list(set(apply_to) & set(groups))
+    # return True if there is intersection
+    return len(intersection) > 0
 
 
 class Host(BaseModel):
@@ -128,6 +74,14 @@ class Host(BaseModel):
                         self.vars = always_merger.merge(self.vars, tmp)
             except FileNotFoundError:
                 print(f"Failed to load vars file {path} for host {self.name}")
+
+    def load_services_data(self):
+        for file in ["l2vni", "l3vni"]:
+            path = f"data/overlay_services/{file}.yaml"
+            with open(path, "r") as f:
+                tmp = yaml.safe_load(f)
+                if tmp:
+                    self.services_data = always_merger.merge(self.services_data, tmp)
 
     def generate_dynamic_vars(self, inventory):
         # TODO change this
@@ -165,6 +119,23 @@ class Host(BaseModel):
                     interface_number += 1
 
         self.dynamic_vars["hostname"] = self.name
+
+        # SERVICES
+        if self.role == "leaf":
+            self.dynamic_vars["services"] = {}
+            self.dynamic_vars["services"]["l2vni"] = []
+            self.dynamic_vars["services"]["l3vni"] = []
+
+            # List of L2VNIs applied to device
+            for service_name, service in self.services_data["l2vni"].items():
+                if apply_to_device(service["apply_to"], self.groups):
+                    self.dynamic_vars["services"]["l2vni"].append(service_name)
+
+            # List of L3VNIs applied to device (== VRFs)
+            for l2vni in self.dynamic_vars["services"]["l2vni"]:
+                if self.services_data["l2vni"][l2vni]["vrf"] not in self.dynamic_vars["services"]["l3vni"]:
+                    self.dynamic_vars["services"]["l3vni"].append(self.services_data["l2vni"][l2vni]["vrf"])
+
         self.vars = always_merger.merge(self.vars, self.dynamic_vars)
         path = f"vars/generated/{self.name}.yaml"
         with open(path, "w") as f:
@@ -176,7 +147,7 @@ class Host(BaseModel):
             try:
                 with open(path, "r") as f:
                     template = ENV.get_template(f"{group}.yaml")
-                    template_string = template.render(**self.vars)
+                    template_string = template.render(**self.vars, **self.services_data)
                     tmp = yaml.safe_load(template_string)
                     if tmp:
                         self.model_data = always_merger.merge(self.model_data, tmp)
@@ -189,14 +160,6 @@ class Host(BaseModel):
                 print(f"Template file {path} for host {self.name}. YAML parser error: {e}")
                 print(template_string)
                 quit()
-
-    def load_services_data(self):
-        for file in ["l2vni", "l3vni"]:
-            path = f"data/overlay_services/{file}.yaml"
-            with open(path, "r") as f:
-                tmp = yaml.safe_load(f)
-                if tmp:
-                    self.services_data = always_merger.merge(self.services_data, tmp)
 
     def load_templates_data(self):
         path = f"data/templates/templates.yaml"
@@ -228,10 +191,10 @@ if __name__ == "__main__":
 
     for host in hosts:
         host.update_groups()
+        host.load_services_data()
         host.load_vars()
         host.generate_dynamic_vars(inventory)
         host.load_groups_data()
-        host.load_services_data()
         host.load_templates_data()
         host.prepare_model()
         host.write_model()

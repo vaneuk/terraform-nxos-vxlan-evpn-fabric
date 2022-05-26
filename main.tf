@@ -4,11 +4,7 @@ terraform {
   required_providers {
     nxos = {
       source  = "netascode/nxos"
-      version = ">= 0.3.16"
-    }
-    utils = {
-      source  = "cloudposse/utils"
-      version = ">= 0.15.0"
+      version = ">= 0.3.17"
     }
   }
   experiments = [module_variable_optional_attrs]
@@ -29,8 +25,9 @@ locals {
 module "nxos_config" {
   # source  = "netascode/config/nxos"
   # version = ">= 0.0.1"
+  # source   = "../terraform-nxos/terraform-nxos-config/"
+  source   = "github.com/netascode/terraform-nxos-config?ref=feature"
   for_each = local.models
-  source   = "../terraform-nxos/terraform-nxos-config/"
 
   model  = each.value
   device = each.key

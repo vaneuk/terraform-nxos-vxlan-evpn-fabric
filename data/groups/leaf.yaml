@@ -7,6 +7,20 @@ interfaces_ethernet:
     mtu: 9216
     ipv4_address: {{ip[id]}}/31
   {% endfor %}
+interfaces_vlan:
+  {%- for service in services.l3vni %}
+  - id: {{l3vni[service].vlan}}
+    ip_forward: true
+    mtu: 9216
+    vrf: {{service}}
+    description: L3VNI_VLAN_FOR_{{service}}
+  {% endfor %}
+  {%- for service in services.l2vni %}
+  - id: {{l2vni[service].vlan}}
+    mtu: 9216
+    vrf: {{l2vni[service].vrf}}
+    description: {{service}}
+  {% endfor %}
 interfaces_loopback:
   "0":
     description: Router ID
@@ -18,8 +32,23 @@ interface_nve:
   ingress_replication_protocol_bgp: true
   source_interface: "lo0"
   # VNI List is populated automatically based on services applied to leaf
+  vnis:
+    {%- for service in services.l3vni %}
+    - vni: {{l3vni[service].vni}}
+      associate_vrf: true
+    {% endfor %}
+    {%- for service in services.l2vni %}
+    - vni: {{l2vni[service].vni}}
+    {% endfor %}
 features:
   pim: false
+fabric_forwarding:
+  anycast_gateway_mac: "20:20:00:00:10:12"
+  # VLAN List is populated automatically based on services applied to leaf
+  anycast_gateway_vlans:
+    {%- for service in services.l2vni %}
+    - {{l2vni[service].vlan}}
+    {% endfor %}
 ospf:
   underlay:
     vrfs:
@@ -63,3 +92,24 @@ bgp:
       {% endfor %}
 vrfs:
   - name: default
+  # VRF List is populated automatically based on services applied to leaf
+  {%- for service in services.l3vni %}
+  - name: {{service}}
+    description: {{l3vni[service].description}}
+    vni: {{l3vni[service].vni}}
+    route_distinguisher: auto
+    address_families:
+      - address_family: ipv4_unicast
+        route_target_both_auto: true
+        route_target_both_auto_evpn: true
+  {% endfor %}
+vlans:
+  # VLAN List is populated automatically based on services applied to leaf
+  {%- for service in services.l3vni %}
+  - id: {{l3vni[service].vlan}}
+    name: L3VNI_VLAN_FOR_{{service}}
+  {% endfor %}
+  {%- for service in services.l2vni %}
+  - id: {{l2vni[service].vlan}}
+    name: {{service}}
+  {% endfor %}

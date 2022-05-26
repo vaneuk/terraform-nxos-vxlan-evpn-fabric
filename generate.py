@@ -33,8 +33,8 @@ class ModelConstructor(BaseModel):
         self.add_model_info()
         return self.model
 
-    def __apply_to_device(apply_to, groups):
-        intersection = list(set(apply_to) & set(groups))
+    def __apply_to_device(self, apply_to):
+        intersection = list(set(apply_to) & set(self.groups))
         # return True if there is intersection
         return len(intersection) > 0
 
@@ -48,7 +48,7 @@ class ModelConstructor(BaseModel):
         device_vrfs = []
         device_interfaces_vlan = []
         for service_name, service in self.services_data["l2vni"].items():
-            if self.__apply_to_device(service["apply_to"], self.groups):
+            if self.__apply_to_device(service["apply_to"]):
                 vlan_entry = {"id": service["vlan"], "name": service_name}
                 device_vlans.append(vlan_entry)
         self.model["vlans"] = device_vlans

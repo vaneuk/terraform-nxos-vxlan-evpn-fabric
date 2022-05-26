@@ -1,35 +1,6 @@
-interfaces_ethernet:
-  {%- for id in underlay_interfaces %}
-  - id: {{id}}
-    description: underlay interface
-    layer3: true
-    link_debounce_down: 0
-    mtu: 9216
-    ipv4_address: {{ip[id]}}/31
-  {% endfor %}
-interfaces_loopback:
-  "0":
-    description: Router ID
-    ipv4_address: {{ip.lo0}}/32
 features:
   pim: false
-ospf:
-  underlay:
-    vrfs:
-      default:
-        router_id: {{ip.lo0}}
-        adjancency_logging_level: detail
-        bandwidth_reference: 1000
-        banwidth_reference_unit: gbps
-        interfaces:
-          lo0:
-            area: 0.0.0.0
-        # ethernet interfaces are added dynamically
-        {%- for id in underlay_interfaces %}
-          eth{{id}}:
-            area: 0.0.0.0
-            network_type: p2p
-        {% endfor %}
+
 bgp:
   asn: {{bgp.asn}}
   enhanced_error: false
@@ -52,5 +23,21 @@ bgp:
         "{{ip.pool.loopback_leaf}}":
           inherit_peer: LEAF-PEERS
           description: leaf switches
+
+interfaces_loopback:
+  "0":
+    description: Router ID
+    ipv4_address: {{ip.lo0}}/32
+
+interfaces_ethernet:
+  {%- for id in underlay_interfaces %}
+  - id: {{id}}
+    description: underlay interface
+    layer3: true
+    link_debounce_down: 0
+    mtu: 9216
+    ipv4_address: {{ip[id]}}/31
+  {% endfor %}
+
 vrfs:
   - name: default

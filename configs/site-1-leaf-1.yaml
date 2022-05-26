@@ -66,6 +66,18 @@ interfaces_ethernet:
   layer3: true
   link_debounce_down: 0
   mtu: 9216
+- description: downlink interface
+  id: 1/1
+  layer3: false
+  mode: trunk
+  mtu: 9216
+  trunk_vlans: 101-102
+- description: downlink interface
+  id: 1/2
+  layer3: false
+  mode: trunk
+  mtu: 9216
+  trunk_vlans: 101,103-104
 interfaces_loopback:
 - description: Router ID
   id: '0'

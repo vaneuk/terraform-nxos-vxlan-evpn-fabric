@@ -4,6 +4,19 @@ bgp:
     name: site-1-spine-1
   - ip: 172.16.1.2
     name: site-1-spine-2
+downlinks:
+  eth:
+    1/1:
+      vlan_list:
+      - 101
+      - 102
+      vlans: 101-102
+    1/2:
+      vlan_list:
+      - 101
+      - 103
+      - 104
+      vlans: 101,103-104
 hostname: site-1-leaf-1
 ip:
   1/6: 169.254.1.0

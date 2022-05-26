@@ -1,71 +1,6 @@
-interfaces_ethernet:
-  {%- for id in underlay_interfaces %}
-  - id: {{id}}
-    description: underlay interface
-    layer3: true
-    link_debounce_down: 0
-    mtu: 9216
-    ipv4_address: {{ip[id]}}/31
-  {% endfor %}
-interfaces_vlan:
-  {%- for service in services.l3vni %}
-  - id: {{l3vni[service].vlan}}
-    ip_forward: true
-    mtu: 9216
-    vrf: {{service}}
-    description: L3VNI_VLAN_FOR_{{service}}
-  {% endfor %}
-  {%- for service in services.l2vni %}
-  - id: {{l2vni[service].vlan}}
-    mtu: 9216
-    vrf: {{l2vni[service].vrf}}
-    description: {{service}}
-  {% endfor %}
-interfaces_loopback:
-  "0":
-    description: Router ID
-    ipv4_address: {{ip.lo0}}/32
-interface_nve:
-  admin_state: true
-  hold_down_time: 300
-  host_reachability_protocol: bgp
-  ingress_replication_protocol_bgp: true
-  source_interface: "lo0"
-  # VNI List is populated automatically based on services applied to leaf
-  vnis:
-    {%- for service in services.l3vni %}
-    - vni: {{l3vni[service].vni}}
-      associate_vrf: true
-    {% endfor %}
-    {%- for service in services.l2vni %}
-    - vni: {{l2vni[service].vni}}
-    {% endfor %}
 features:
   pim: false
-fabric_forwarding:
-  anycast_gateway_mac: "20:20:00:00:10:12"
-  # VLAN List is populated automatically based on services applied to leaf
-  anycast_gateway_vlans:
-    {%- for service in services.l2vni %}
-    - {{l2vni[service].vlan}}
-    {% endfor %}
-ospf:
-  underlay:
-    vrfs:
-      default:
-        router_id: {{ip.lo0}}
-        adjancency_logging_level: detail
-        bandwidth_reference: 1000
-        banwidth_reference_unit: gbps
-        interfaces:
-          lo0:
-            area: 0.0.0.0
-        # ethernet interfaces are added dynamically
-        {%- for id in underlay_interfaces %}
-          eth{{id}}:
-            area: 0.0.0.0
-            network_type: p2p
-        {% endfor %}
+
 bgp:
   asn: {{bgp.asn}}
   enhanced_error: false
@@ -90,6 +25,71 @@ bgp:
           inherit_peer: SPINE-PEERS
           description: {{peer.name}}
       {% endfor %}
+
+interfaces_loopback:
+  "0":
+    description: Router ID
+    ipv4_address: {{ip.lo0}}/32
+
+interfaces_ethernet:
+  # Underlay interfaces
+  {%- for id in underlay_interfaces %}
+  - id: {{id}}
+    description: underlay interface
+    layer3: true
+    link_debounce_down: 0
+    mtu: 9216
+    ipv4_address: {{ip[id]}}/31
+  {% endfor %}
+  # Downlink interfaces
+  {%- for id in downlinks.eth %}
+  - id: {{id}}
+    description: downlink interface
+    layer3: false
+    mode: trunk
+    mtu: 9216
+    trunk_vlans: {{downlinks.eth[id].vlans}}
+  {% endfor %}
+
+interfaces_vlan:
+  {%- for service in services.l3vni %}
+  - id: {{l3vni[service].vlan}}
+    ip_forward: true
+    mtu: 9216
+    vrf: {{service}}
+    description: L3VNI_VLAN_FOR_{{service}}
+  {% endfor %}
+  {%- for service in services.l2vni %}
+  - id: {{l2vni[service].vlan}}
+    mtu: 9216
+    vrf: {{l2vni[service].vrf}}
+    description: {{service}}
+  {% endfor %}
+
+interface_nve:
+  admin_state: true
+  hold_down_time: 300
+  host_reachability_protocol: bgp
+  ingress_replication_protocol_bgp: true
+  source_interface: "lo0"
+  # VNI List is populated automatically based on services applied to leaf
+  vnis:
+    {%- for service in services.l3vni %}
+    - vni: {{l3vni[service].vni}}
+      associate_vrf: true
+    {% endfor %}
+    {%- for service in services.l2vni %}
+    - vni: {{l2vni[service].vni}}
+    {% endfor %}
+
+fabric_forwarding:
+  anycast_gateway_mac: "20:20:00:00:10:12"
+  # VLAN List is populated automatically based on services applied to leaf
+  anycast_gateway_vlans:
+    {%- for service in services.l2vni %}
+    - {{l2vni[service].vlan}}
+    {% endfor %}
+
 vrfs:
   - name: default
   # VRF List is populated automatically based on services applied to leaf
@@ -103,6 +103,7 @@ vrfs:
         route_target_both_auto: true
         route_target_both_auto_evpn: true
   {% endfor %}
+
 vlans:
   # VLAN List is populated automatically based on services applied to leaf
   {%- for service in services.l3vni %}

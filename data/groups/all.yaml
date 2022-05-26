@@ -1,3 +1,5 @@
+hostname: {{hostname}}
+
 features:
   ospf: true
   bgp: true
@@ -7,4 +9,21 @@ features:
   ssh: true
   interface_vlan: true
   pim: true
-hostname: {{hostname}}
+
+ospf:
+  underlay:
+    vrfs:
+      default:
+        router_id: {{ip.lo0}}
+        adjancency_logging_level: detail
+        bandwidth_reference: 1000
+        banwidth_reference_unit: gbps
+        interfaces:
+          lo0:
+            area: 0.0.0.0
+        # underlay interfaces are added dynamically
+        {%- for id in underlay_interfaces %}
+          eth{{id}}:
+            area: 0.0.0.0
+            network_type: p2p
+        {% endfor %}

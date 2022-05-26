@@ -1,6 +1,5 @@
 """
-Helper script to convert Dicts to List.
-Example.
+Example of convert_dicts_to_lists function operation:
 Input:
 {
   "bgp": {
@@ -154,3 +153,21 @@ def list_replace_none(l):
             e = []
         x.append(e)
     return x
+
+
+def join_consecutive_vlans(v: list):
+    sorted_vlan_list = sorted(v)
+    result = [[sorted_vlan_list[0]]]
+    previous = sorted_vlan_list[0]
+    for vlan in sorted_vlan_list[1:]:
+        if vlan == previous + 1:
+            if len(result[-1]) == 1:
+                result[-1].append(vlan)
+            else:
+                result[-1][1] = vlan
+            previous = vlan
+        else:
+            result.append([vlan])
+        previous = vlan
+    formatted_result = ",".join(["-".join([str(vlan) for vlan in i]) for i in result])
+    return formatted_result

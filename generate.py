@@ -7,18 +7,11 @@ from deepmerge import always_merger
 from jinja2 import Environment, FileSystemLoader, exceptions
 from pydantic import BaseModel
 
-from helpers import convert_dicts_to_lists, dict_replace_none
+from helpers import convert_dicts_to_lists, dict_replace_none, join_consecutive_vlans
 
 
 FILE_LOADER = FileSystemLoader("data/groups")
 ENV = Environment(loader=FILE_LOADER)
-
-
-def represent_none(self, _):
-    return self.represent_scalar("tag:yaml.org,2002:null", "")
-
-
-yaml.add_representer(type(None), represent_none)
 
 
 class NoAliasDumper(yaml.SafeDumper):
@@ -45,7 +38,8 @@ class ModelConstructor(BaseModel):
 
 
 def apply_to_device(apply_to, groups):
-    intersection = list(set(apply_to) & set(groups))
+    apply_to_groups = apply_to.keys()
+    intersection = list(set(apply_to_groups) & set(groups))
     # return True if there is intersection
     return len(intersection) > 0
 
@@ -127,6 +121,7 @@ class Host(BaseModel):
 
         # SERVICES
         if self.role == "leaf":
+            self.dynamic_vars["downlinks"] = {}
             self.dynamic_vars["services"] = {}
             self.dynamic_vars["services"]["l2vni"] = []
             self.dynamic_vars["services"]["l3vni"] = []
@@ -140,6 +135,31 @@ class Host(BaseModel):
             for l2vni in self.dynamic_vars["services"]["l2vni"]:
                 if self.services_data["l2vni"][l2vni]["vrf"] not in self.dynamic_vars["services"]["l3vni"]:
                     self.dynamic_vars["services"]["l3vni"].append(self.services_data["l2vni"][l2vni]["vrf"])
+
+            # Downlinks
+            for l2vni in self.dynamic_vars["services"]["l2vni"]:
+                if self.services_data["l2vni"][l2vni]["apply_to"]:
+                    if self.services_data["l2vni"][l2vni]["apply_to"][self.name]:
+                        for interface in self.services_data["l2vni"][l2vni]["apply_to"][self.name]:
+                            # TODO change this
+                            if "eth" in interface:
+                                interface_type = "eth"
+                                interface_id = interface.replace("eth", "")
+                            if interface_type not in self.dynamic_vars["downlinks"]:
+                                self.dynamic_vars["downlinks"][interface_type] = {}
+                            if interface_id not in self.dynamic_vars["downlinks"][interface_type]:
+                                self.dynamic_vars["downlinks"][interface_type][interface_id] = {
+                                    "vlan_list": [],
+                                    "vlans": "",
+                                }
+                            self.dynamic_vars["downlinks"][interface_type][interface_id]["vlan_list"].append(
+                                self.services_data["l2vni"][l2vni]["vlan"]
+                            )
+
+            # summarize Vlans
+            for interfaces in self.dynamic_vars["downlinks"].values():
+                for interface in interfaces.values():
+                    interface["vlans"] = join_consecutive_vlans(interface["vlan_list"])
 
         self.vars = always_merger.merge(self.vars, self.dynamic_vars)
         path = f"vars/dynamic/{self.name}.yaml"

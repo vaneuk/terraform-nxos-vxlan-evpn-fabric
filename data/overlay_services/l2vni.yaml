@@ -5,7 +5,9 @@ l2vni:
     vni: 1000101
     ipv4_address: 10.1.101.1/24
     apply_to:
-      - site-1-leaf-1
+      site-1-leaf-1:
+        - eth1/1
+        - eth1/2
       # - site-1-leaf-2
   service-tenant-1-b:
     vrf: TENANT-1
@@ -13,18 +15,21 @@ l2vni:
     vni: 1000102
     ipv4_address: 10.1.102.1/24
     apply_to:
-      - site-1-leaf-1
+      site-1-leaf-1:
+        - eth1/1
   service-tenant-2-a:
     vrf: TENANT-2
     vlan: 103
     vni: 1000103
     ipv4_address: 10.2.103.1/24
     apply_to:
-      - site-1-leaf-1
+      site-1-leaf-1:
+        - eth1/2
   service-tenant-2-b:
     vrf: TENANT-2
     vlan: 104
     vni: 1000104
     ipv4_address: 10.2.104.1/24
     apply_to:
-      - site-1-leaf-1
+      site-1-leaf-1:
+        - eth1/2

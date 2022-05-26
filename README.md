@@ -1,6 +1,27 @@
 # Cisco Nexus 9000 VXLAN EVPN Fabric Terraform example
 
-This example demonstrates how the [NX-OS Terraform Provider](https://registry.terraform.io/providers/netascode/nxos/latest/docs) can be used to build a Cisco Nexus 9000 EVPN Fabric. It currently supports underlay and overlay configuration, but no access interfaces.
+This example demonstrates how the [NX-OS Terraform Provider](https://registry.terraform.io/providers/netascode/nxos/latest/docs) can be used to build a Cisco Nexus 9000 EVPN Fabric.
+
+It configures the following:
+- Hostname
+- Features
+- VLANs
+- VLAN interfaces
+- Loopback interfaces
+- underlay interfaces
+- trunk downlink interfaces (for Leaf)
+- underlay OSPF
+- BGP
+- Fabric Forwading MAC address
+- NVE interface
+- EVPN section
+- VRFs
+
+Not supported:
+- VPC
+- STP
+- PIM
+- Port-channels
 
 This repository uses general-purpose [Terraform NX-OS Configuration Module](https://github.com/netascode/terraform-nxos-config), which introduces another level of abstraction for the end user.
 

@@ -1,0 +1,8 @@
+hostname: site-1-spine-1
+ip:
+  1/1: 169.254.1.1
+  1/2: 169.254.1.3
+  lo0: 172.16.1.1
+underlay_interfaces:
+- 1/1
+- 1/2

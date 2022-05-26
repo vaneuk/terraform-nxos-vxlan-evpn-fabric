@@ -32,9 +32,13 @@ override.tf.json
 terraform.lock.hcl
 .terraform.lock.hcl
 
+
+__pycache__
+
 # VSCODE
 .vscode
 
 # TMP
 config-test*
 *.drawio
+dev.tfrc

@@ -1,0 +1,36 @@
+---
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.50.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tflint
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        types_or: [python, pyi]
+        args: # arguments to configure black
+          - --line-length=120
+          # - --include='\.pyi?$'
+
+          # # these folders wont be formatted by black
+          # - --exclude="""\.git |
+          #   \.__pycache__|
+          #   \.hg|
+          #   \.mypy_cache|
+          #   \.tox|
+          #   \.venv|
+          #   _build|
+          #   buck-out|
+          #   build|
+          #   dist"""
+
+  # - repo: https://github.com/terraform-docs/terraform-docs
+  #   rev: v0.16.0
+  #   hooks:
+  #     - id: terraform-docs-system
+  #       args: ['./examples/complete']
+  #     - id: terraform-docs-system
+  #       args: ['.']

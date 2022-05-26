@@ -1,0 +1,30 @@
+---
+- name: site-1-spine-1
+  url: https://10.0.24.202
+  site: 1
+  id: 1
+  role: spine
+  groups:
+    - nxosv
+- name: site-1-spine-2
+  url: https://10.0.24.203
+  site: 1
+  id: 2
+  role: spine
+  groups:
+    - nxosv
+- name: site-1-leaf-1
+  url: https://10.0.24.200
+  site: 1
+  id: 1
+  role: leaf
+  groups:
+    - nxosv
+- name: site-1-leaf-2
+  url: https://10.0.24.201
+  site: 1
+  id: 2
+  role: leaf
+  groups:
+    - nxosv
+    - foo

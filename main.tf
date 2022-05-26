@@ -14,7 +14,6 @@ provider "nxos" {
   username = "admin"
   password = "cisco!123"
   devices  = local.devices
-  # url = "https://10.0.24.200"
 }
 
 locals {
@@ -26,7 +25,7 @@ module "nxos_config" {
   # source  = "netascode/config/nxos"
   # version = ">= 0.0.1"
   # source   = "../terraform-nxos/terraform-nxos-config/"
-  source   = "github.com/netascode/terraform-nxos-config?ref=feature"
+  source   = "github.com/netascode/terraform-nxos-config"
   for_each = local.models
 
   model  = each.value

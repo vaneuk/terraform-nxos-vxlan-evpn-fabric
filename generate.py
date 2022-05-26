@@ -7,11 +7,18 @@ from deepmerge import always_merger
 from jinja2 import Environment, FileSystemLoader, exceptions
 from pydantic import BaseModel
 
-from helpers import convert_dicts_to_lists
+from helpers import convert_dicts_to_lists, dict_replace_none
 
 
 FILE_LOADER = FileSystemLoader("data/groups")
 ENV = Environment(loader=FILE_LOADER)
+
+
+def represent_none(self, _):
+    return self.represent_scalar("tag:yaml.org,2002:null", "")
+
+
+yaml.add_representer(type(None), represent_none)
 
 
 class NoAliasDumper(yaml.SafeDumper):
@@ -55,7 +62,7 @@ class Host(BaseModel):
     dynamic_vars = {}
     model_data = {}
     services_data = {}
-    templates_data = {}
+    templates_data = {}  # TODO subject to delete
     model: Optional[dict]
 
     def update_groups(self):
@@ -83,7 +90,7 @@ class Host(BaseModel):
                 if tmp:
                     self.services_data = always_merger.merge(self.services_data, tmp)
 
-    def generate_dynamic_vars(self, inventory):
+    def add_dynamic_vars(self, inventory):
         # TODO change this
         self.dynamic_vars["ip"] = {}
         self.dynamic_vars["underlay_interfaces"] = []
@@ -137,7 +144,7 @@ class Host(BaseModel):
                     self.dynamic_vars["services"]["l3vni"].append(self.services_data["l2vni"][l2vni]["vrf"])
 
         self.vars = always_merger.merge(self.vars, self.dynamic_vars)
-        path = f"vars/generated/{self.name}.yaml"
+        path = f"vars/dynamic/{self.name}.yaml"
         with open(path, "w") as f:
             yaml.dump(self.dynamic_vars, f, Dumper=NoAliasDumper)
 
@@ -178,8 +185,11 @@ class Host(BaseModel):
 
     def write_model(self):
         path = f"configs/{self.name}.yaml"
+        # replace interfaces_vlan: null to interfaces_vlan: []
+        # TODO move this logic to Jinja?
+        model_formatted = dict_replace_none(self.model)
         with open(path, "w") as f:
-            yaml.dump(self.model, f, Dumper=NoAliasDumper)
+            yaml.dump(model_formatted, f, Dumper=NoAliasDumper)
 
 
 if __name__ == "__main__":
@@ -193,7 +203,7 @@ if __name__ == "__main__":
         host.update_groups()
         host.load_services_data()
         host.load_vars()
-        host.generate_dynamic_vars(inventory)
+        host.add_dynamic_vars(inventory)
         host.load_groups_data()
         host.load_templates_data()
         host.prepare_model()

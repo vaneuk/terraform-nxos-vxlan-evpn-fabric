@@ -128,3 +128,29 @@ CHANGE_LIST = [
     # ("id", ["interfaces_ethernet"]),
     ("id", ["interfaces_loopback"]),
 ]
+
+
+def dict_replace_none(d):
+    x = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            v = dict_replace_none(v)
+        elif isinstance(v, list):
+            v = list_replace_none(v)
+        elif v is None:
+            v = []
+        x[k] = v
+    return x
+
+
+def list_replace_none(l):
+    x = []
+    for e in l:
+        if isinstance(e, list):
+            e = list_replace_none(e)
+        elif isinstance(e, dict):
+            e = dict_replace_none(e)
+        elif e is None:
+            e = []
+        x.append(e)
+    return x

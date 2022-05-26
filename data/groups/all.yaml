@@ -1,9 +1,3 @@
-logging:
-  default:
-    levels:
-      l2fm: 5
-    syslog:
-      foo: "bar"
 features:
   ospf: true
   bgp: true
@@ -13,3 +7,4 @@ features:
   ssh: true
   interface_vlan: true
   pim: true
+hostname: {{hostname}}

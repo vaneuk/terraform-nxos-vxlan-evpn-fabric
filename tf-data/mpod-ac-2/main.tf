@@ -17,9 +17,9 @@ provider "nxos" {
   username = "admin"
   password = "Admin_1234!"
   # url      = "https://10.62.130.39"
-  url      = "https://sandbox-nxos-1.cisco.com"
+  url = "https://sandbox-nxos-1.cisco.com"
   # url      = "https://10.62.130.40"
-  retries  = 1
+  retries = 1
 }
 
 locals {
@@ -33,9 +33,9 @@ data "utils_deep_merge_yaml" "model" {
 }
 
 module "nxos_vrf" {
-  source     = "../../../terraform-nxac/modules/nxos-vrf"
-  for_each   = { for vrf in lookup(local.model, "vrfs", []) : vrf.name => vrf }
-  name       = each.value.name
+  source   = "../../../terraform-nxac/modules/nxos-vrf"
+  for_each = { for vrf in lookup(local.model, "vrfs", []) : vrf.name => vrf }
+  name     = each.value.name
   # depends_on = [module.nxos_vrf_default]
 }
 

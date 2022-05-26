@@ -11,13 +11,6 @@ interfaces_loopback:
   "0":
     description: Router ID
     ipv4_address: {{ip.lo0}}/32
-interface_nve:
-  admin_state: true
-  hold_down_time: 300
-  host_reachability_protocol: bgp
-  ingress_replication_protocol_bgp: true
-  source_interface: "lo0"
-  # VNI List is populated automatically based on services applied to leaf
 features:
   pim: false
 ospf:
@@ -41,11 +34,12 @@ bgp:
   asn: {{bgp.asn}}
   enhanced_error: false
   template_peers:
-    SPINE-PEERS:
+    LEAF-PEERS:
       asn: {{bgp.asn}}
       source_interface: lo0
       address_families:
         l2vpn_evpn:
+          route_reflector_client: true
           send_community_standard: true
           send_community_extended: true
   vrfs:
@@ -55,11 +49,8 @@ bgp:
       graseful_restart_stalepath_time: 1800
       graseful_restart_restart_time: 300
       neighbors:
-      # spine peers are added automatically
-      {%- for peer in bgp.spine_peers %}
-        {{peer.ip}}:
-          inherit_peer: SPINE-PEERS
-          description: {{peer.name}}
-      {% endfor %}
+        "{{ip.pool.loopback_leaf}}":
+          inherit_peer: LEAF-PEERS
+          description: leaf switches
 vrfs:
   - name: default

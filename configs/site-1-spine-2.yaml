@@ -4,23 +4,21 @@ bgp:
   template_peers:
   - address_families:
     - address_family: l2vpn_evpn
+      route_reflector_client: true
       send_community_extended: true
       send_community_standard: true
     asn: 65002
-    name: SPINE-PEERS
+    name: LEAF-PEERS
     source_interface: lo0
   vrfs:
   - graseful_restart_restart_time: 300
     graseful_restart_stalepath_time: 1800
     log_neighbor_changes: true
     neighbors:
-    - description: site-1-spine-1
-      inherit_peer: SPINE-PEERS
-      ip: 172.16.1.1
-    - description: site-1-spine-2
-      inherit_peer: SPINE-PEERS
-      ip: 172.16.1.2
-    router_id: 172.16.0.2
+    - description: leaf switches
+      inherit_peer: LEAF-PEERS
+      ip: 172.16.0.0/24
+    router_id: 172.16.1.2
     vrf: default
 features:
 - ospf
@@ -30,40 +28,25 @@ features:
 - vn_segment
 - ssh
 - interface_vlan
-hostname: site-1-leaf-2
-interface_nve:
-  admin_state: true
-  hold_down_time: 300
-  host_reachability_protocol: bgp
-  ingress_replication_protocol_bgp: true
-  source_interface: lo0
+hostname: site-1-spine-2
 interfaces_ethernet:
 - description: underlay interface
-  id: 1/6
-  ipv4_address: 169.254.1.2/31
+  id: 1/1
+  ipv4_address: 169.254.2.1/31
   layer3: true
   link_debounce_down: 0
   mtu: 9216
 - description: underlay interface
-  id: 1/7
-  ipv4_address: 169.254.2.2/31
+  id: 1/2
+  ipv4_address: 169.254.2.3/31
   layer3: true
   link_debounce_down: 0
   mtu: 9216
 interfaces_loopback:
 - description: Router ID
   id: '0'
-  ipv4_address: 172.16.0.2/32
-interfaces_vlan:
-- description: Some tenant
-  id: 3901
-  ip_forward: true
-  mtu: 9216
-  vrf: TENANT-1
-- description: service-tenant-1-a
-  id: 101
-  mtu: 9216
-  vrf: TENANT-1
+  ipv4_address: 172.16.1.2/32
+interfaces_vlan: []
 ospf:
 - name: underlay
   vrfs:
@@ -74,23 +57,13 @@ ospf:
     - area: 0.0.0.0
       interface: lo0
     - area: 0.0.0.0
-      interface: eth1/6
+      interface: eth1/1
       network_type: p2p
     - area: 0.0.0.0
-      interface: eth1/7
+      interface: eth1/2
       network_type: p2p
-    router_id: 172.16.0.2
+    router_id: 172.16.1.2
     vrf: default
-vlans:
-- id: 101
-  name: service-tenant-1-a
+vlans: []
 vrfs:
 - name: default
-- address_families:
-  - address_family: ipv4_unicast
-    route_target_both_auto: true
-    route_target_both_auto_evpn: true
-  description: Some tenant
-  name: TENANT-1
-  route_distinguisher: auto
-  vni: 103901

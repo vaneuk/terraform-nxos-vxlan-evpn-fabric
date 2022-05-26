@@ -1,0 +1,14 @@
+bgp:
+  spine_peers:
+  - ip: 172.16.1.1
+    name: site-1-spine-1
+  - ip: 172.16.1.2
+    name: site-1-spine-2
+hostname: site-1-leaf-2
+ip:
+  1/6: 169.254.1.2
+  1/7: 169.254.2.2
+  lo0: 172.16.0.2
+underlay_interfaces:
+- 1/6
+- 1/7

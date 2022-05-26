@@ -1,4 +1,1 @@
-ip_spine_1: 172.16.1.101
-description_spine_1: "site-1-spine-1"
-ip_spine_2: 172.16.1.102
-description_spine_2: "site-1-spine-2"
+first_underlay_interface: "1/6"

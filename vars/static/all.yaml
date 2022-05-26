@@ -1,3 +1,7 @@
-bgp_asn: 65002
-underlay_ip_pool: 169.254.0.0/16
-lo0_ip_pool: 172.16.0.0/24
+bgp:
+  asn: 65002
+ip:
+  pool:
+    underlay: 169.254.0.0/16
+    loopback_leaf: 172.16.0.0/24
+    loopback_spine: 172.16.1.0/24

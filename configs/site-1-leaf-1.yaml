@@ -16,11 +16,11 @@ bgp:
     neighbors:
     - description: site-1-spine-1
       inherit_peer: SPINE-PEERS
-      ip: 172.16.1.101
+      ip: 172.16.1.1
     - description: site-1-spine-2
       inherit_peer: SPINE-PEERS
-      ip: 172.16.1.102
-    router_id: 172.16.1.1
+      ip: 172.16.1.2
+    router_id: 172.16.0.1
     vrf: default
 features:
 - ospf
@@ -38,22 +38,22 @@ interface_nve:
   ingress_replication_protocol_bgp: true
   source_interface: lo0
 interfaces_ethernet:
-- debounce: 0
-  description: underlay interface
-  id: 1/51
-  ipv4_address: 192.168.1.0/31
+- description: underlay interface
+  id: 1/6
+  ipv4_address: 169.254.1.0/31
   layer3: true
+  link_debounce_down: 0
   mtu: 9216
-- debounce: 0
-  description: underlay interface
-  id: 1/52
-  ipv4_address: 192.168.2.0/31
+- description: underlay interface
+  id: 1/7
+  ipv4_address: 169.254.2.0/31
   layer3: true
+  link_debounce_down: 0
   mtu: 9216
 interfaces_loopback:
 - description: Router ID
   id: '0'
-  ipv4_address: 172.16.1.1/32
+  ipv4_address: 172.16.0.1/32
 interfaces_vlan:
 - description: Some tenant
   id: 3901
@@ -81,12 +81,6 @@ interfaces_vlan:
   id: 104
   mtu: 9216
   vrf: TENANT-2
-logging:
-  default:
-    levels:
-      l2fm: 5
-    syslog:
-      foo: bar
 ospf:
 - name: underlay
   vrfs:
@@ -95,14 +89,14 @@ ospf:
     banwidth_reference_unit: gbps
     interfaces:
     - area: 0.0.0.0
-      interface: eth1/51
-      network_type: p2p
-    - area: 0.0.0.0
-      interface: eth1/52
-      network_type: p2p
-    - area: 0.0.0.0
       interface: lo0
-    router_id: 172.16.1.1
+    - area: 0.0.0.0
+      interface: eth1/6
+      network_type: p2p
+    - area: 0.0.0.0
+      interface: eth1/7
+      network_type: p2p
+    router_id: 172.16.0.1
     vrf: default
 vlans:
 - id: 101
@@ -114,23 +108,20 @@ vlans:
 - id: 104
   name: service-tenant-2-b
 vrfs:
+- name: default
 - address_families:
   - address_family: ipv4_unicast
     route_target_both_auto: true
     route_target_both_auto_evpn: true
   description: Some tenant
-  mtu: 9216
   name: TENANT-1
   route_distinguisher: auto
-  vlan: 3901
   vni: 103901
 - address_families:
   - address_family: ipv4_unicast
     route_target_both_auto: true
     route_target_both_auto_evpn: true
   description: Some tenant
-  mtu: 9216
   name: TENANT-2
   route_distinguisher: auto
-  vlan: 3902
   vni: 103902

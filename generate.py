@@ -29,7 +29,6 @@ class NoAliasDumper(yaml.SafeDumper):
 class ModelConstructor(BaseModel):
     model_data: dict
     services_data: dict
-    templates_data: dict
     groups: list[str]
     model: Optional[dict]
 
@@ -62,7 +61,6 @@ class Host(BaseModel):
     dynamic_vars = {}
     model_data = {}
     services_data = {}
-    templates_data = {}  # TODO subject to delete
     model: Optional[dict]
 
     def update_groups(self):
@@ -168,17 +166,11 @@ class Host(BaseModel):
                 print(template_string)
                 quit()
 
-    def load_templates_data(self):
-        path = f"data/templates/templates.yaml"
-        with open(path, "r") as f:
-            self.templates_data = yaml.safe_load(f)
-
     def prepare_model(self):
         # convert Dict to Lists
         model_constructor = ModelConstructor(
             model_data=self.model_data,
             services_data=self.services_data,
-            templates_data=self.templates_data,
             groups=self.groups,
         )
         self.model = model_constructor.construct_model()
@@ -205,6 +197,5 @@ if __name__ == "__main__":
         host.load_vars()
         host.add_dynamic_vars(inventory)
         host.load_groups_data()
-        host.load_templates_data()
         host.prepare_model()
         host.write_model()

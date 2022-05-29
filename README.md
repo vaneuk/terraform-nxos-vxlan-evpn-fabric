@@ -23,7 +23,7 @@ Not supported:
 - PIM
 - Port-channels
 
-This repository uses general-purpose [Terraform NX-OS Configuration Module](https://github.com/netascode/terraform-nxos-config), which introduces another level of abstraction for the end user.
+This repository uses general-purpose [Terraform NX-OS Configuration Module](https://registry.terraform.io/modules/netascode/config/nxos/latest), which introduces another level of abstraction for the end user.
 
 ## Configuration
 
@@ -34,7 +34,7 @@ The configuration is derived from the following directories:
 - `data/overlay_services` - YAML configuration files for overlay services (L2VNI and L3VNI).
 - `data/groups` - Jinja2 templates that are used to generate YAML configuration files. These templates use variables defined in the directories mentioned above. Configurations are merged based on device membership in groups.
 
-Resulting configuration in YAML format is saved to `configs` directory. Configuration is in format supported by [Terraform NX-OS Configuration Module](https://github.com/netascode/terraform-nxos-config).
+Resulting configuration in YAML format is saved to `configs` directory. Configuration is in format supported by [Terraform NX-OS Configuration Module](https://registry.terraform.io/modules/netascode/config/nxos/latest).
 
 ## Usage
 
@@ -81,7 +81,7 @@ Generate configuration files:
 python generate.py
 ```
 
-Run Terraform
+Run Terraform:
 ```shell
 terraform init
 terraform plan

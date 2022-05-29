@@ -22,10 +22,8 @@ locals {
 }
 
 module "nxos_config" {
-  # source  = "netascode/config/nxos"
-  # version = ">= 0.0.1"
-  # source   = "../terraform-nxos/terraform-nxos-config/"
-  source   = "github.com/netascode/terraform-nxos-config"
+  source   = "netascode/config/nxos"
+  version  = ">= 0.1.0"
   for_each = local.models
 
   model  = each.value
